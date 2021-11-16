@@ -1,6 +1,7 @@
 package websockets
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -37,7 +38,7 @@ class ElizaServerTest {
         assertEquals("The doctor is in.", list[0])
     }
 
-    @Disabled
+
     @Test
     fun onChat() {
         val latch = CountDownLatch(4)
@@ -46,8 +47,17 @@ class ElizaServerTest {
         val client = ElizaOnOpenMessageHandlerToComplete(list, latch)
         container.connectToServer(client, URI("ws://localhost:$port/eliza"))
         latch.await()
-        // assertEquals(XXX, list.size) COMPLETE ME
-        // assertEquals(XXX, list[XXX]) COMPLETE ME
+
+        val allPossiblesResponses = listOf(
+                "What does that suggest to you?",
+                "I see.",
+                "I'm not sure I understand you fully.",
+                "Can you elaborate?",
+                "That is quite interesting."
+                )
+
+        assert(list.size >= 4)
+        assert(arrayOf(list[3]).any{it in allPossiblesResponses})
     }
 
 }
@@ -68,8 +78,10 @@ class ElizaOnOpenMessageHandlerToComplete(private val list: MutableList<String>,
     fun onMessage(message: String, session: Session)  {
         list.add(message)
         latch.countDown()
-        // if (COMPLETE ME) {
-        //    COMPLETE ME
-        // }
+        if (latch.count == 1L) {
+            with(session.basicRemote){
+                sendText("What's up docki?")
+            }
+         }
     }
 }
